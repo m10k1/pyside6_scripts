@@ -1,9 +1,14 @@
 import sys
 from PySide6.QtWidgets import (
     QApplication,QMainWindow, 
-    QMdiArea, QMdiSubWindow, QTextEdit
+    QMdiArea, QMdiSubWindow, QTextEdit,
+    QFileDialog,
+    QLabel
 )
-from PySide6.QtGui import QAction
+from PySide6.QtGui import (
+    QAction,
+    QPixmap
+)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -26,17 +31,26 @@ class MainWindow(QMainWindow):
         open_action.triggered.connect(self.open_file)
         file_menu.addAction(open_action)
     
-    def create_sub_window(self):
+
+    def open_file(self):
+        file_name, _ = QFileDialog.getOpenFileName(self, "", "Open File", "", "Image Files (*.jpeg, *.jpg, *.bmp, *.gif, *.png)")
+        if file_name:
+            self.show_image(file_name)
+
+    def show_image(self, file_name):
+        # Load Image
+        image = QPixmap(file_name)
+
+        # QLabel
+        label = QLabel()
+        label.setPixmap(image)
+    
         sub_window = QMdiSubWindow()
-        text_edit = QTextEdit()
-        sub_window.setWidget(text_edit)
-        sub_window.setWindowTitle("New Document")
+        sub_window.setWidget(label)
+        sub_window.setWindowTitle(file_name.split('/')[-1])
         self.mid_area.addSubWindow(sub_window)
         sub_window.show()
 
-
-    def open_file(self):
-        self.create_sub_window()
 
 
 def main():
