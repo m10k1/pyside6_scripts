@@ -3,13 +3,31 @@ from PySide6.QtWidgets import (
     QApplication,QMainWindow, 
     QMdiArea, QMdiSubWindow, QTextEdit,
     QFileDialog,
-    QLabel
+    QLabel,
+    QScrollArea
 )
 from PySide6.QtGui import (
     QAction,
-    QPixmap
+    QPixmap,
+    QColorConstants, QColor,
+    QPalette
 )
 
+class ImageSubWindow(QMdiSubWindow):
+    def __init__(self, file_name, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(file_name.split('/')[-1])  # ファイル名をウィンドウタイトルに設定
+        
+        self.image_label = QLabel()  # 画像を表示するためのラベル
+        self.image_label.setPixmap(QPixmap(file_name))
+        self.image_label.setScaledContents(True)  # 画像のサイズをラベルのサイズに合わせる
+
+        self.scroll_area = QScrollArea()  # スクロールエリアを作成
+        self.scroll_area.setWidget(self.image_label)  # ラベルをスクロールエリアに設定
+        self.scroll_area.setBackgroundRole(QPalette.ColorRole.Window)  # 背景色を白に設定
+        self.setWidget(self.scroll_area)  # スクロールエリアをサブウィンドウのメインウィジェットとして設定
+
+        
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -33,7 +51,7 @@ class MainWindow(QMainWindow):
     
 
     def open_file(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "", "Open File", "", "Image Files (*.jpeg, *.jpg, *.bmp, *.gif, *.png)")
+        file_name, _ = QFileDialog.getOpenFileName(self, "Open File", "", "Images (*jpeg *.jpg *.bmp *.gif *.png)")
         if file_name:
             self.show_image(file_name)
 
@@ -42,12 +60,7 @@ class MainWindow(QMainWindow):
         image = QPixmap(file_name)
 
         # QLabel
-        label = QLabel()
-        label.setPixmap(image)
-    
-        sub_window = QMdiSubWindow()
-        sub_window.setWidget(label)
-        sub_window.setWindowTitle(file_name.split('/')[-1])
+        sub_window = ImageSubWindow(file_name, self)
         self.mid_area.addSubWindow(sub_window)
         sub_window.show()
 
