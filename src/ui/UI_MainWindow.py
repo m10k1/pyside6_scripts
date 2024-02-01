@@ -38,10 +38,6 @@ class Ui_MainWindow(object):
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-
-        self.horizontalLayout_2.addItem(self.verticalSpacer)
-
         self.gridLayout = QGridLayout()
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setHorizontalSpacing(6)
@@ -86,16 +82,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.lePerspective, 8, 3, 1, 1)
 
-        self.btnRest = QPushButton(self.centralwidget)
-        self.btnRest.setObjectName(u"btnRest")
-
-        self.gridLayout.addWidget(self.btnRest, 11, 3, 1, 1)
-
-        self.btnUpdate = QPushButton(self.centralwidget)
-        self.btnUpdate.setObjectName(u"btnUpdate")
-
-        self.gridLayout.addWidget(self.btnUpdate, 11, 2, 1, 1)
-
         self.perspectiveSlider = QSlider(self.centralwidget)
         self.perspectiveSlider.setObjectName(u"perspectiveSlider")
         sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -103,15 +89,16 @@ class Ui_MainWindow(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.perspectiveSlider.sizePolicy().hasHeightForWidth())
         self.perspectiveSlider.setSizePolicy(sizePolicy1)
-        self.perspectiveSlider.setMinimum(-90)
-        self.perspectiveSlider.setMaximum(90)
+        self.perspectiveSlider.setMinimum(-1000)
+        self.perspectiveSlider.setMaximum(1000)
         self.perspectiveSlider.setOrientation(Qt.Horizontal)
 
         self.gridLayout.addWidget(self.perspectiveSlider, 8, 0, 1, 3)
 
         self.verticalSlider = QSlider(self.centralwidget)
         self.verticalSlider.setObjectName(u"verticalSlider")
-        self.verticalSlider.setMinimum(-100)
+        self.verticalSlider.setMinimum(-1000)
+        self.verticalSlider.setMaximum(1000)
         self.verticalSlider.setValue(0)
         self.verticalSlider.setOrientation(Qt.Horizontal)
 
@@ -119,8 +106,8 @@ class Ui_MainWindow(object):
 
         self.horizntalSlider = QSlider(self.centralwidget)
         self.horizntalSlider.setObjectName(u"horizntalSlider")
-        self.horizntalSlider.setMinimum(-1)
-        self.horizntalSlider.setMaximum(1)
+        self.horizntalSlider.setMinimum(-1000)
+        self.horizntalSlider.setMaximum(1000)
         self.horizntalSlider.setPageStep(9)
         self.horizntalSlider.setOrientation(Qt.Horizontal)
 
@@ -133,8 +120,8 @@ class Ui_MainWindow(object):
         sizePolicy2.setVerticalStretch(0)
         sizePolicy2.setHeightForWidth(self.rotSlider.sizePolicy().hasHeightForWidth())
         self.rotSlider.setSizePolicy(sizePolicy2)
-        self.rotSlider.setMinimum(-90)
-        self.rotSlider.setMaximum(90)
+        self.rotSlider.setMinimum(-1000)
+        self.rotSlider.setMaximum(1000)
         self.rotSlider.setOrientation(Qt.Horizontal)
 
         self.gridLayout.addWidget(self.rotSlider, 1, 0, 1, 3)
@@ -159,6 +146,16 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.label_2, 0, 0, 1, 4)
 
+        self.btnUpdate = QPushButton(self.centralwidget)
+        self.btnUpdate.setObjectName(u"btnUpdate")
+
+        self.gridLayout.addWidget(self.btnUpdate, 9, 1, 1, 1)
+
+        self.btnRest = QPushButton(self.centralwidget)
+        self.btnRest.setObjectName(u"btnRest")
+
+        self.gridLayout.addWidget(self.btnRest, 9, 3, 1, 1)
+
 
         self.horizontalLayout_2.addLayout(self.gridLayout)
 
@@ -170,11 +167,6 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_2)
-
-        self.widget = QWidget(self.centralwidget)
-        self.widget.setObjectName(u"widget")
-
-        self.verticalLayout.addWidget(self.widget)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -221,12 +213,16 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.actionOpen.setText(QCoreApplication.translate("MainWindow", u"Open", None))
         self.actionExit.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
-        self.btnRest.setText(QCoreApplication.translate("MainWindow", u"Reset", None))
-        self.btnUpdate.setText(QCoreApplication.translate("MainWindow", u"Update", None))
+        self.leMoveX.setText(QCoreApplication.translate("MainWindow", u"0", None))
+        self.leRot.setText(QCoreApplication.translate("MainWindow", u"0", None))
+        self.leMoveY.setText(QCoreApplication.translate("MainWindow", u"0", None))
+        self.lePerspective.setText(QCoreApplication.translate("MainWindow", u"0", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"\u3042\u304a\u308a\u88dc\u6b63", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u79fb\u52d5\uff08Y)", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u79fb\u52d5\uff08X\uff09", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u56de\u8ee2", None))
+        self.btnUpdate.setText(QCoreApplication.translate("MainWindow", u"Update", None))
+        self.btnRest.setText(QCoreApplication.translate("MainWindow", u"Reset", None))
         self.lblImage.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
         self.btnClose.setText(QCoreApplication.translate("MainWindow", u"Close", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))

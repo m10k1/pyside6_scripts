@@ -20,19 +20,6 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
          <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0">
           <property name="horizontalSpacing">
            <number>6</number>
@@ -71,6 +58,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="text">
+             <string>0</string>
+            </property>
            </widget>
           </item>
           <item row="1" column="3">
@@ -86,6 +76,9 @@
               <width>15</width>
               <height>0</height>
              </size>
+            </property>
+            <property name="text">
+             <string>0</string>
             </property>
            </widget>
           </item>
@@ -103,6 +96,9 @@
               <height>0</height>
              </size>
             </property>
+            <property name="text">
+             <string>0</string>
+            </property>
            </widget>
           </item>
           <item row="8" column="3">
@@ -113,19 +109,8 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-           </widget>
-          </item>
-          <item row="11" column="3">
-           <widget class="QPushButton" name="btnRest">
             <property name="text">
-             <string>Reset</string>
-            </property>
-           </widget>
-          </item>
-          <item row="11" column="2">
-           <widget class="QPushButton" name="btnUpdate">
-            <property name="text">
-             <string>Update</string>
+             <string>0</string>
             </property>
            </widget>
           </item>
@@ -138,10 +123,10 @@
              </sizepolicy>
             </property>
             <property name="minimum">
-             <number>-90</number>
+             <number>-1000</number>
             </property>
             <property name="maximum">
-             <number>90</number>
+             <number>1000</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -151,7 +136,10 @@
           <item row="6" column="0" colspan="3">
            <widget class="QSlider" name="verticalSlider">
             <property name="minimum">
-             <number>-100</number>
+             <number>-1000</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
             </property>
             <property name="value">
              <number>0</number>
@@ -164,10 +152,10 @@
           <item row="4" column="0" colspan="3">
            <widget class="QSlider" name="horizntalSlider">
             <property name="minimum">
-             <number>-1</number>
+             <number>-1000</number>
             </property>
             <property name="maximum">
-             <number>1</number>
+             <number>1000</number>
             </property>
             <property name="pageStep">
              <number>9</number>
@@ -186,10 +174,10 @@
              </sizepolicy>
             </property>
             <property name="minimum">
-             <number>-90</number>
+             <number>-1000</number>
             </property>
             <property name="maximum">
-             <number>90</number>
+             <number>1000</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -224,6 +212,20 @@
             </property>
            </widget>
           </item>
+          <item row="9" column="1">
+           <widget class="QPushButton" name="btnUpdate">
+            <property name="text">
+             <string>Update</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="3">
+           <widget class="QPushButton" name="btnRest">
+            <property name="text">
+             <string>Reset</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>
@@ -240,9 +242,6 @@
          </widget>
         </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QWidget" name="widget" native="true"/>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
