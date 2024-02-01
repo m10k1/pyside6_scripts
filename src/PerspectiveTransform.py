@@ -26,18 +26,17 @@ class MainWindow(QMainWindow):
 
         # Slider Event Hander
         self.ui.rotSlider.sliderMoved.connect(self.rotSliderMoved)
-        #self.ui.rotSlider.sliderReleased.connect(self.rotSliderReleased)
 
         #self.moveXRange=1000
         self.ui.horizntalSlider.sliderMoved.connect(self.horizontalSliderMoved)
-        #self.ui.horizntalSlider.sliderReleased.connect(self.horizontalSliderReleased)
 
         self.ui.verticalSlider.sliderMoved.connect(self.verticalSliderMoved)
-        #self.ui.verticalSlider.sliderReleased.connect(self.verticalSliderReleased)
 
         self.perspectiveRange = 90
         self.ui.perspectiveSlider.sliderMoved.connect(self.perspectiveSliderMoved)
-        #self.ui.perspectiveSlider.sliderReleased.connect(self.perspectiveSliderReleased)
+
+        self.outputHeightRange = 5
+        self.ui.outputHeightSlider.sliderMoved.connect(self.outputHeightSliderMoved)
 
         # line edit event handler
         leRotValidator = QDoubleValidator(-self.rotRange, self.rotRange, 3 )
@@ -56,6 +55,11 @@ class MainWindow(QMainWindow):
         lePerspectiveValidator = QDoubleValidator(-self.perspectiveRange, self.perspectiveRange, 3)
         self.ui.lePerspective.setValidator(lePerspectiveValidator)
         self.ui.lePerspective.textEdited.connect(self.lePerspectiveEdited)
+
+        leOutputHeightValidator = QDoubleValidator(0, self.ui.outputHeightSlider.maximum(), 3)
+        self.ui.leOutputHeight.setValidator(leOutputHeightValidator)
+        self.ui.leOutputHeight.textEdited.connect(self.leOutputHeightEdited)
+    
 
         self.ui.btnUpdate.pressed.connect(self.update_image)
 
@@ -78,11 +82,27 @@ class MainWindow(QMainWindow):
         img = cv2.warpAffine(img, trM, (img.shape[1], img.shape[0]))
 
         # Rotation
-        val = float(self.ui.leRot.text())
-        rotM = cv2.getRotationMatrix2D((img.shape[1] / 2, img.shape[0] / 2), val, 1)
+        valRot = float(self.ui.leRot.text())
+        rotM = cv2.getRotationMatrix2D((img.shape[1] / 2, img.shape[0] / 2), valRot, 1)
         img = cv2.warpAffine(img, rotM, (img.shape[1], img.shape[0]))
 
         # Perspective
+        valHeight = float(self.ui.leOutputHeight.text())
+        valPerspective = float(self.ui.lePerspective.text())
+
+        w = img.shape[1]
+        h = img.shape[0]
+
+        dst_w = w
+        dst_h = h * valHeight
+
+        delta_w = np.tan(valPerspective * np.pi / 180) * dst_h
+        dst = np.float32([[0, 0], [w + 2 * delta_w, 0], [delta_w, dst_h], [w + delta_w, dst_h]])
+
+        persMat = cv2.getPerspectiveTransform(np.float32([[0, 0], [w, 0], [0, h], [w, h]]),dst)
+
+        img = cv2.warpPerspective(img, persMat, (int(w + 2 * delta_w), int(dst_h)))
+
         self.show_image(img)
 
     def show_image(self, img):
@@ -103,17 +123,21 @@ class MainWindow(QMainWindow):
         self.ui.leRot.setText(str(val))
         
     def horizontalSliderMoved(self, value):
-        val = value # / self.ui.horizntalSlider.maximum()
+        val = value
         self.ui.leMoveX.setText(str(val))
 
     def verticalSliderMoved(self, value):
-        val = value # / self.ui.verticalSlider.maximum()
+        val = value
         self.ui.leMoveY.setText(str(val))
         
     def perspectiveSliderMoved(self, value):
         val = self.perspectiveRange * value  / self.ui.perspectiveSlider.maximum()
         self.ui.lePerspective.setText(str(val))
-    
+
+    def outputHeightSliderMoved(self, value):
+        val = self.outputHeightRange * value / self.ui.outputHeightSlider.maximum() 
+        self.ui.leOutputHeight.setText(str(val))
+
 
     # leRot Event Handler
     def leRotEdited(self):
@@ -159,6 +183,16 @@ class MainWindow(QMainWindow):
             self.ui.lePerspective.setText(str(val))
         
         self.ui.perspectiveSlider.setValue(int(val * self.ui.perspectiveSlider.maximum() / self.perspectiveRange))
+
+    def leOutputHeightEdited(self):
+        val = float(self.ui.leOutputHeight.text())
+
+        if val < 1 or val > self.outputHeightRange:
+            val = np.clip(val, 1, self.outputHeightRange)
+            self.ui.leOutputHeight.setText(str(val))
+
+        self.ui.outputHeightSlider.setValue(int(self.outputHeightRange * val / self.ui.outputHeightSlider.maximum()))
+
 
     def read_image_japanese_path(self, file_path):
         # バイトデータとして画像を読み込み
