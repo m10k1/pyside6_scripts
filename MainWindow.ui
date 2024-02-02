@@ -84,6 +84,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="text">
+             <string>0</string>
+            </property>
            </widget>
           </item>
           <item row="12" column="0">
@@ -100,6 +103,9 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="text">
+             <string>0</string>
             </property>
            </widget>
           </item>
@@ -130,6 +136,9 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="text">
+             <string>0</string>
             </property>
            </widget>
           </item>
@@ -183,6 +192,9 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="text">
+             <string>0</string>
             </property>
            </widget>
           </item>
@@ -329,6 +341,9 @@
             <property name="text">
              <string>Trimming</string>
             </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item row="16" column="0">
@@ -342,6 +357,9 @@
            <widget class="QCheckBox" name="cbCopyExif">
             <property name="text">
              <string>Copy Exif</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
