@@ -230,6 +230,7 @@ class Ui_MainWindow(object):
 
         self.cbTrimming = QCheckBox(self.centralwidget)
         self.cbTrimming.setObjectName(u"cbTrimming")
+        self.cbTrimming.setChecked(True)
 
         self.gridLayout.addWidget(self.cbTrimming, 11, 3, 1, 1)
 
@@ -240,6 +241,7 @@ class Ui_MainWindow(object):
 
         self.cbCopyExif = QCheckBox(self.centralwidget)
         self.cbCopyExif.setObjectName(u"cbCopyExif")
+        self.cbCopyExif.setChecked(True)
 
         self.gridLayout.addWidget(self.cbCopyExif, 16, 3, 1, 1)
 
@@ -307,11 +309,15 @@ class Ui_MainWindow(object):
         self.actionBatch_Folder.setText(QCoreApplication.translate("MainWindow", u"Process Folder", None))
         self.lePerspective.setText(QCoreApplication.translate("MainWindow", u"0", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"\u3042\u304a\u308a\u88dc\u6b63", None))
+        self.leTrimLeft.setText(QCoreApplication.translate("MainWindow", u"0", None))
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"Top", None))
+        self.leTrimTop.setText(QCoreApplication.translate("MainWindow", u"0", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"Bottom", None))
         self.leOutputHeight.setText(QCoreApplication.translate("MainWindow", u"1", None))
+        self.leTrimRight.setText(QCoreApplication.translate("MainWindow", u"0", None))
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Right", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u56de\u8ee2", None))
+        self.leTrimBottom.setText(QCoreApplication.translate("MainWindow", u"0", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u79fb\u52d5\uff08X\uff09", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u79fb\u52d5\uff08Y)", None))
         self.btnRest.setText(QCoreApplication.translate("MainWindow", u"Reset", None))
