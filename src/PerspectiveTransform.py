@@ -1,14 +1,20 @@
 import sys
 import numpy as np
+import os
 import cv2
+from PIL import Image
+
+import json
+
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QFileDialog)
-# from PySide6.QtCore import ()
+    QApplication, QMainWindow, QFileDialog, QMessageBox)
+from PySide6.QtCore import (Qt)
 from PySide6.QtGui import (
-    QImage, QPixmap, QAction, QDoubleValidator, QIntValidator
+    QImage, QKeyEvent, QPixmap, QAction, QDoubleValidator, QIntValidator,
 )
 
 from ui.Ui_MainWindow import Ui_MainWindow 
+import json
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -60,10 +66,19 @@ class MainWindow(QMainWindow):
         self.ui.leOutputHeight.setValidator(leOutputHeightValidator)
         self.ui.leOutputHeight.textEdited.connect(self.leOutputHeightEdited)
     
+        IntValidator = QIntValidator()
+        self.ui.leTrimTop.setValidator(IntValidator)
+        self.ui.leTrimLeft.setValidator(IntValidator)
+        self.ui.leTrimBottom.setValidator(IntValidator)
+        self.ui.leTrimRight.setValidator(IntValidator)
+        
 
         self.ui.btnUpdate.pressed.connect(self.update_image)
 
         self.fname = ""
+        self.scale_factor = 1.0
+
+        self.load_settings()
 
     def open_file(self):
         self.fname, _ = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', 'Image files (*.png *.jpg *.bmp)')
@@ -71,38 +86,66 @@ class MainWindow(QMainWindow):
             img = self.read_image_japanese_path(self.fname)
             self.show_image(img)
     
-    def update_image(self):
+    def processImage(self):
         img = self.read_image_japanese_path(self.fname)
 
         # Move
         valX = int(self.ui.leMoveX.text())
         valY = int(self.ui.leMoveY.text())
-
-        trM = np.float32([[1, 0, valX], [0, 1, valY]])
-        img = cv2.warpAffine(img, trM, (img.shape[1], img.shape[0]))
-
-        # Rotation
         valRot = float(self.ui.leRot.text())
-        rotM = cv2.getRotationMatrix2D((img.shape[1] / 2, img.shape[0] / 2), valRot, 1)
-        img = cv2.warpAffine(img, rotM, (img.shape[1], img.shape[0]))
-
-        # Perspective
         valHeight = float(self.ui.leOutputHeight.text())
         valPerspective = float(self.ui.lePerspective.text())
+
+        center = (img.shape[1] / 2, img.shape[0] / 2 )
+        rotM = cv2.getRotationMatrix2D(center, valRot, 1)
+        rotM[0, 2] += valX
+        rotM[1, 2] += valY
+
+        img = cv2.warpAffine(img, rotM, (img.shape[1], img.shape[0]), flags=cv2.INTER_LANCZOS4)
 
         w = img.shape[1]
         h = img.shape[0]
 
-        dst_w = w
         dst_h = h * valHeight
-
         delta_w = np.tan(valPerspective * np.pi / 180) * dst_h
+
+        dest = np.float32([[0, 0], [w + 2 * delta_w, 0], [delta_w, dst_h], [w + delta_w, dst_h]])
         dst = np.float32([[0, 0], [w + 2 * delta_w, 0], [delta_w, dst_h], [w + delta_w, dst_h]])
+        src = np.float32([[0, 0], [w, 0], [0, h], [w, h]])
 
-        persMat = cv2.getPerspectiveTransform(np.float32([[0, 0], [w, 0], [0, h], [w, h]]),dst)
+        persMat = cv2.getPerspectiveTransform(src, dst)
+        img = cv2.warpPerspective(img, persMat, (int(w + 2 * delta_w), int(dst_h)),flags=cv2.INTER_LANCZOS4)
 
-        img = cv2.warpPerspective(img, persMat, (int(w + 2 * delta_w), int(dst_h)))
 
+        flagTrim = self.ui.cbTrimming.isChecked
+
+        if flagTrim:
+            trimTop = int(self.ui.leTrimTop.text())
+            trimLeft = int(self.ui.leTrimLeft.text())
+            trimBottom = int(self.ui.leTrimBottom.text()) 
+            trimRight = int(self.ui.leTrimRight.text())   
+
+            img = img[trimTop:img.shape[0] - trimBottom, trimLeft:img.shape[1] - trimRight]
+
+
+        flagCopyExif = self.ui.cbCopyExif.isChecked
+        
+        if flagCopyExif:
+            img = self.copy_exif(img)
+
+
+        return img
+
+    def copy_exif(self, img):
+        return img
+
+    def update_image(self):
+        if self.fname == "":
+            return
+
+        img = self.processImage()
+        # 最終的な画像のスケーリングを適用
+        img = cv2.resize(img, (int(img.shape[1] * self.scale_factor), int(img.shape[0] * self.scale_factor)))
         self.show_image(img)
 
     def show_image(self, img):
@@ -112,7 +155,7 @@ class MainWindow(QMainWindow):
     def convert_cvimage_to_qimage(self, cv_image):
         height, width, channel = cv_image.shape
         bytesPerLine = 3 * width
-        qImg = QImage(cv_image.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        qImg = QImage(cv_image.data, width, height, bytesPerLine, QImage.Format_BGR888)
         return qImg
 
     def closeWindow(self):
@@ -193,6 +236,102 @@ class MainWindow(QMainWindow):
 
         self.ui.outputHeightSlider.setValue(int(self.outputHeightRange * val / self.ui.outputHeightSlider.maximum()))
 
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        if event.key() == Qt.Key_Plus and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            self.scale_factor = min(self.scale_factor+ 0.1, 5)
+        elif event.key() == Qt.Key_Minus and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+
+            self.scale_factor =  max(self.scale_factor-0.1, 0.1)
+
+        elif event.key() == Qt.Key_S and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            self.save_image()
+        
+        self.update_image()
+    
+
+    def cv2_to_pil(self, image):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        pil_img = Image.fromarray(image)
+        return pil_img
+
+    def get_exif_data(self, img_path):
+        img = Image.open(img_path)
+        exif_data = img.info.get('exif')
+        return exif_data
+    
+    def save_image_with_exif(self, img_path, transformed_img, exif_data):
+        if exif_data:
+            #exif_bytes = piexif.dump(exif_data)
+            transformed_img.save(img_path, "JPEG", exif=exif_data)
+        else:
+            transformed_img.save(img_path)
+
+    def save_image(self):
+        """
+        現在表示している画像を保存する
+        """
+        if self.fname is None:
+            return  # 画像がない場合は何もしない
+
+        save_image = self.processImage()
+        save_image = self.cv2_to_pil(save_image)
+
+        exif_data = self.get_exif_data(self.fname)  
+
+
+        # 保存先のファイル名を選択するダイアログを表示
+        fname, _ = QFileDialog.getSaveFileName(self, 'Save Image', '', 'Image files (*.jpg)')
+        if fname:
+            # ファイルの拡張子に応じて正しいフォーマットを選択
+            #ext = os.path.splitext(fname)[1]
+            #format = ext[1:].upper()  # 拡張子からピリオドを除去し、大文字に変換
+
+            self.save_image_with_exif(fname, save_image, exif_data)
+
+
+    def save_settings(self):
+        settings = {
+            'lineEditMoveX': self.ui.leMoveX.text(),
+            'lineEditMoveY': self.ui.leMoveY.text(),
+            'lineEditRotate': self.ui.leRot.text(),
+            'lineEditPerspective': self.ui.lePerspective.text(),
+            'lineEditOutputHeight': self.ui.leOutputHeight.text(),
+            'checkBoxTrimming': self.ui.cbTrimming.isChecked(),
+            'checkBoxCopyExif': self.ui.cbCopyExif.isChecked(),
+            'lineEditTrimTop': self.ui.leTrimTop.text(),
+            'lineEditTrimLeft': self.ui.leTrimLeft.text(),
+            'lineEditTrimBottom': self.ui.leTrimBottom.text(),
+            'lineEditTrimRight': self.ui.leTrimRight.text(),
+        }
+
+        with open('settings.json', 'w') as f:
+            json.dump(settings, f)
+    
+    def load_settings(self):
+        try:
+            with open('settings.json', 'r') as f:
+                settings = json.load(f)
+
+                self.ui.leMoveX.setText(settings['lineEditMoveX'])
+                self.ui.leMoveY.setText(settings['lineEditMoveY'])
+                self.ui.leRot.setText(settings['lineEditRotate'])
+                self.ui.lePerspective.setText(settings['lineEditPerspective'])
+                self.ui.leOutputHeight.setText(settings['lineEditOutputHeight'])
+                self.ui.cbTrimming.setChecked(settings['checkBoxTrimming'])
+                self.ui.cbCopyExif.setChecked(settings['checkBoxCopyExif'])
+                self.ui.leTrimTop.setText(settings['lineEditTrimTop'])
+                self.ui.leTrimLeft.setText(settings['lineEditTrimLeft'])
+                self.ui.leTrimBottom.setText(settings['lineEditTrimBottom'])
+                self.ui.leTrimRight.setText(settings['lineEditTrimRight'])
+
+                self.update_image()  # 設定を適用した後に画像を再表示する
+
+        except FileNotFoundError:
+            pass
+    
+    def closeEvent(self, event):
+        self.save_settings()
+        super().closeEvent(event)
 
     def read_image_japanese_path(self, file_path):
         # バイトデータとして画像を読み込み
