@@ -100,6 +100,14 @@ class MainWindow(QMainWindow):
         
 
     def processFolder(self, srcFolder, destFolder):
+        # フォルダの確認
+        # 絶対パスに変換して同じパスが設定されていないか確認する
+
+        absSrcFolder = os.path.abspath(srcFolder)
+        absDestFolder = os.path.abspath(destFolder)
+        if absSrcFolder == destFolder:
+            raise ValueError("ソースフォルダと保存先フォルダが同じです")
+
         for root, dirs, files in os.walk(srcFolder):
             for file in files:
 
@@ -117,7 +125,7 @@ class MainWindow(QMainWindow):
 
 
                     # processImage
-                    self.save_image(self.fname, os.path.join(destPath, file))    
+                    self.save_image(srcPath, os.path.join(destPath, file))    
 
                     # save image
 
