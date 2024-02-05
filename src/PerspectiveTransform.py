@@ -125,7 +125,7 @@ class MainWindow(QMainWindow):
 
 
                     # processImage
-                    self.save_image(self.fname, os.path.join(destPath, file))    
+                    self.save_image(srcPath, os.path.join(destPath, file))    
 
                     # save image
 
