@@ -73,7 +73,9 @@ class MainWindow(QMainWindow):
         self.ui.leTrimRight.setValidator(IntValidator)
         
 
-        self.ui.btnUpdate.pressed.connect(self.update_image)
+        self.ui.btnUpdate.pressed.connect(self.update_action)
+
+        self.ui.actionBatch_Folder.triggered.connect(self.batchFolder)
 
         self.fname = ""
         self.scale_factor = 1.0
@@ -86,8 +88,42 @@ class MainWindow(QMainWindow):
             img = self.read_image_japanese_path(self.fname)
             self.show_image(img)
     
-    def processImage(self):
-        img = self.read_image_japanese_path(self.fname)
+    def batchFolder(self):
+        srcFolderPath = QFileDialog.getExistingDirectory(self, "処理対象のフォルダを選択してください")
+
+        if srcFolderPath:
+            print(f"{srcFolderPath}")
+
+            destFolderPath = QFileDialog.getExistingDirectory(self, "保存先のフォルダを選択してください")
+            if destFolderPath :
+                self.processFolder(srcFolderPath, destFolderPath)
+        
+
+    def processFolder(self, srcFolder, destFolder):
+        for root, dirs, files in os.walk(srcFolder):
+            for file in files:
+
+                if file.lower().endswith(('.jpg','*.jpeg')):
+                    srcPath = os.path.join(root, file)
+
+                    #保存先のパスを作成
+                    relativePath = os.path.relpath(root, srcFolder)
+                    destPath = os.path.join(destFolder, relativePath)
+
+                    if not os.path.exists(destPath):
+                        os.makedirs(destPath)
+                    
+                    print(f"destpath: {os.path.join(destPath, file)}")
+
+
+                    # processImage
+                    self.save_image(self.fname, os.path.join(destPath, file))    
+
+                    # save image
+
+
+    def processImage(self, fname):
+        img = self.read_image_japanese_path(fname)
 
         # Move
         valX = int(self.ui.leMoveX.text())
@@ -117,7 +153,7 @@ class MainWindow(QMainWindow):
         img = cv2.warpPerspective(img, persMat, (int(w + 2 * delta_w), int(dst_h)),flags=cv2.INTER_LANCZOS4)
 
 
-        flagTrim = self.ui.cbTrimming.isChecked
+        flagTrim = self.ui.cbTrimming.isChecked()
 
         if flagTrim:
             trimTop = int(self.ui.leTrimTop.text())
@@ -128,7 +164,7 @@ class MainWindow(QMainWindow):
             img = img[trimTop:img.shape[0] - trimBottom, trimLeft:img.shape[1] - trimRight]
 
 
-        flagCopyExif = self.ui.cbCopyExif.isChecked
+        flagCopyExif = self.ui.cbCopyExif.isChecked()
         
         if flagCopyExif:
             img = self.copy_exif(img)
@@ -139,11 +175,8 @@ class MainWindow(QMainWindow):
     def copy_exif(self, img):
         return img
 
-    def update_image(self):
-        if self.fname == "":
-            return
-
-        img = self.processImage()
+    def update_image(self, fname):
+        img = self.processImage(fname)
         # 最終的な画像のスケーリングを適用
         img = cv2.resize(img, (int(img.shape[1] * self.scale_factor), int(img.shape[0] * self.scale_factor)))
         self.show_image(img)
@@ -239,15 +272,41 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event: QKeyEvent) -> None:
         if event.key() == Qt.Key_Plus and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             self.scale_factor = min(self.scale_factor+ 0.1, 5)
+            self.update_image(self.fname)
+
         elif event.key() == Qt.Key_Minus and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
 
             self.scale_factor =  max(self.scale_factor-0.1, 0.1)
+            self.update_image(self.fname)
 
         elif event.key() == Qt.Key_S and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
-            self.save_image()
-        
-        self.update_image()
+            """
+            現在表示している画像を保存する
+            """
+            if self.fname != "":
+                save_fname, _ = QFileDialog.getSaveFileName(self, 'Save Image', '', 'Image files (*.jpg)')
+
+            if save_fname != "":
+                self.save_image(self.fname, save_fname)    
+                self.update_image(self.fname)
     
+
+    
+
+    def save_image(self, fname, save_fname):
+
+        save_image = self.processImage(fname)
+        save_image = self.cv2_to_pil(save_image)
+        exif_data = self.get_exif_data(fname)  
+
+
+        # 保存先のファイル名を選択するダイアログを表示
+        if save_fname:
+            # ファイルの拡張子に応じて正しいフォーマットを選択
+            #ext = os.path.splitext(fname)[1]
+            #format = ext[1:].upper()  # 拡張子からピリオドを除去し、大文字に変換
+
+            self.save_image_with_exif(save_fname, save_image, exif_data)
 
     def cv2_to_pil(self, image):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -258,36 +317,13 @@ class MainWindow(QMainWindow):
         img = Image.open(img_path)
         exif_data = img.info.get('exif')
         return exif_data
-    
+
     def save_image_with_exif(self, img_path, transformed_img, exif_data):
         if exif_data:
             #exif_bytes = piexif.dump(exif_data)
             transformed_img.save(img_path, "JPEG", exif=exif_data)
         else:
             transformed_img.save(img_path)
-
-    def save_image(self):
-        """
-        現在表示している画像を保存する
-        """
-        if self.fname is None:
-            return  # 画像がない場合は何もしない
-
-        save_image = self.processImage()
-        save_image = self.cv2_to_pil(save_image)
-
-        exif_data = self.get_exif_data(self.fname)  
-
-
-        # 保存先のファイル名を選択するダイアログを表示
-        fname, _ = QFileDialog.getSaveFileName(self, 'Save Image', '', 'Image files (*.jpg)')
-        if fname:
-            # ファイルの拡張子に応じて正しいフォーマットを選択
-            #ext = os.path.splitext(fname)[1]
-            #format = ext[1:].upper()  # 拡張子からピリオドを除去し、大文字に変換
-
-            self.save_image_with_exif(fname, save_image, exif_data)
-
 
     def save_settings(self):
         settings = {
@@ -324,11 +360,16 @@ class MainWindow(QMainWindow):
                 self.ui.leTrimBottom.setText(settings['lineEditTrimBottom'])
                 self.ui.leTrimRight.setText(settings['lineEditTrimRight'])
 
-                self.update_image()  # 設定を適用した後に画像を再表示する
+                if self.fname != "":  # 画像が開かれている場合のみ設定を適用する
+                    self.update_image(self.fname)  # 設定を適用した後に画像を再表示する
 
         except FileNotFoundError:
             pass
     
+    def update_action(self):
+        if self.fname != "" :
+            self.update_image(self.fname) 
+
     def closeEvent(self, event):
         self.save_settings()
         super().closeEvent(event)
