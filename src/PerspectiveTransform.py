@@ -321,9 +321,9 @@ class MainWindow(QMainWindow):
     def save_image_with_exif(self, img_path, transformed_img, exif_data):
         if exif_data:
             #exif_bytes = piexif.dump(exif_data)
-            transformed_img.save(img_path, "JPEG", exif=exif_data)
+            transformed_img.save(img_path, "JPEG", exif=exif_data, quality=80)
         else:
-            transformed_img.save(img_path)
+            transformed_img.save(img_path, quality=80)
 
     def save_settings(self):
         settings = {
