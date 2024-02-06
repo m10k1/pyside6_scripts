@@ -16,6 +16,10 @@ from PySide6.QtGui import (
 from ui.Ui_MainWindow import Ui_MainWindow 
 import json
 
+from concurrent.futures import ThreadPoolExecutor
+
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -105,29 +109,35 @@ class MainWindow(QMainWindow):
 
         absSrcFolder = os.path.abspath(srcFolder)
         absDestFolder = os.path.abspath(destFolder)
-        if absSrcFolder == destFolder:
+
+        if absSrcFolder == absDestFolder:
             raise ValueError("ソースフォルダと保存先フォルダが同じです")
 
-        for root, dirs, files in os.walk(srcFolder):
-            for file in files:
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = []
+            for root, dirs, files in os.walk(srcFolder):
+                for file in files:
 
-                if file.lower().endswith(('.jpg','*.jpeg')):
-                    srcPath = os.path.join(root, file)
+                    if file.lower().endswith(('.jpg','*.jpeg')):
+                        srcPath = os.path.join(root, file)
 
-                    #保存先のパスを作成
-                    relativePath = os.path.relpath(root, srcFolder)
-                    destPath = os.path.join(destFolder, relativePath)
+                        #保存先のパスを作成
+                        relativePath = os.path.relpath(root, srcFolder)
+                        destPath = os.path.join(destFolder, relativePath)
 
-                    if not os.path.exists(destPath):
-                        os.makedirs(destPath)
-                    
-                    print(f"destpath: {os.path.join(destPath, file)}")
+                        if not os.path.exists(destPath):
+                            os.makedirs(destPath)
+                        
+                        future = executor.submit(self.processAndSaveImage, srcPath, os.path.join(destPath, file))
+                        futures.append(future)
 
+            for future in futures:
+                result = future.result()
+                print(result)
 
-                    # processImage
-                    self.save_image(srcPath, os.path.join(destPath, file))    
-
-                    # save image
+    def processAndSaveImage(self, srcPath, destPath):
+        self.save_image(srcPath, destPath)
+        return True
 
 
     def processImage(self, fname):
@@ -176,7 +186,6 @@ class MainWindow(QMainWindow):
         
         if flagCopyExif:
             img = self.copy_exif(img)
-
 
         return img
 
